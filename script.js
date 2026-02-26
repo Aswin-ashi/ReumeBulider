@@ -159,8 +159,10 @@ document.getElementById('in_photo').addEventListener('change', function (e) {
                 }
             }
 
-            saveEditorState();
-            saveToLocalStorage();
+            if (localStorage.getItem('resumeEditorHTML')) {
+                saveEditorState();
+            }
+            triggerUpdate();
         };
         reader.readAsDataURL(file);
     }
@@ -450,11 +452,10 @@ function updatePreview(forceRegenerate = false) {
     }
 
     const savedHTML = localStorage.getItem('resumeEditorHTML');
-    if (savedHTML && !forceRegenerate) {
-        if (isFirstLoad) {
-            previewBox.innerHTML = savedHTML;
-            isFirstLoad = false;
-        }
+    if (savedHTML && !forceRegenerate && isFirstLoad) {
+        previewBox.innerHTML = savedHTML;
+        isFirstLoad = false;
+
         const topBar = previewBox.querySelector('.top-bar');
         if (topBar) topBar.style.backgroundColor = themeColor;
         return;
@@ -733,7 +734,6 @@ function updatePreview(forceRegenerate = false) {
     }
 
     previewBox.innerHTML = html;
-    saveEditorState();
 }
 
 function adjustSpacing(sectionId, delta) {
