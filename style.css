@@ -924,6 +924,7 @@ textarea {
     body {
         height: auto;
         min-height: 100vh;
+        min-height: 100dvh;
         overflow: auto;
         background-attachment: fixed;
     }
@@ -932,6 +933,13 @@ textarea {
         flex-direction: column;
         height: auto;
         overflow: visible;
+        padding-bottom: 2rem;
+    }
+
+    .footer {
+        flex-shrink: 0;
+        z-index: 10;
+        position: relative;
     }
 
     .editor-panel,
@@ -1069,6 +1077,123 @@ textarea {
     .split-item {
         page-break-inside: avoid;
         break-inside: avoid;
+    }
+}
+
+/* --- PREMIUM OPENING ANIMATION --- */
+.premium-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    background: #0f172a;
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.8s cubic-bezier(0.65, 0, 0.35, 1), visibility 0.8s;
+}
+
+.loader-content {
+    text-align: center;
+    color: #fff;
+    animation: loaderFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.loader-brand {
+    font-size: 2.5rem;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+}
+
+.loader-bar-container {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    margin: 0 auto 1.5rem auto;
+    overflow: hidden;
+    position: relative;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.6s forwards;
+}
+
+.loader-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 0%;
+    background: var(--primary);
+    box-shadow: 0 0 10px var(--primary);
+    border-radius: 4px;
+    animation: loadProgress 2s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+}
+
+.loader-text {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    opacity: 0;
+    animation: fadeIn 0.5s ease 0.8s forwards;
+    font-weight: 500;
+}
+
+.premium-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+@keyframes loaderFadeIn {
+    0% {
+        transform: scale(0.95);
+        opacity: 0;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    0% {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    100% {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes loadProgress {
+    0% {
+        width: 0%;
+    }
+
+    40% {
+        width: 60%;
+    }
+
+    100% {
+        width: 100%;
     }
 }
 

@@ -748,6 +748,15 @@ function adjustSpacing(sectionId, delta) {
 }
 
 window.addEventListener('load', () => {
+    // Premium Opening Animation Hide
+    setTimeout(() => {
+        const loader = document.getElementById('premium-loader');
+        if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(() => loader.remove(), 800);
+        }
+    }, 2200);
+
     const savedEditor = localStorage.getItem('resumeEditorHTML');
 
     loadFromLocalStorage();
