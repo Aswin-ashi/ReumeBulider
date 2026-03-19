@@ -27,7 +27,7 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
             e.target.closest('.drag-handle') ||
             e.target.classList.contains('resize-handle')) return;
 
-        e.stopPropagation();
+        if (e.type !== 'touchstart') e.stopPropagation();
         select(element.id);
 
         // Let the drag logic attach seamlessly to any wrapper drag.
@@ -43,6 +43,7 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                 className={`canvas-element${isSelected ? ' selected' : ''}`}
                 style={{ ...style, height: Math.max(8, element.height || 2) }}
                 onMouseDown={handleWrapperMouseDown}
+                onTouchStart={handleWrapperMouseDown}
             >
                 {/* 
                   The outer wrapper maintains a minimum height of 8px so the user can easily grab/drag it.
@@ -57,12 +58,12 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                     background: element.lineColor || '#333333',
                 }} />
                 {isSelected && (
-                    <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
+                    <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)} onTouchStart={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
                         <i className="fa-solid fa-up-down-left-right" style={{ marginRight: 4 }} />Move
                     </div>
                 )}
                 {isSelected && HANDLES.map(h => (
-                    <div key={h} className={`resize-handle ${h}`} onMouseDown={e => onResizeHandleMouseDown(e, h)} />
+                    <div key={h} className={`resize-handle ${h}`} onMouseDown={e => onResizeHandleMouseDown(e, h)} onTouchStart={e => onResizeHandleMouseDown(e, h)} />
                 ))}
             </div>
         );
@@ -76,6 +77,7 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                 className={`canvas-element${isSelected ? ' selected' : ''}`}
                 style={{ ...style, overflow: 'hidden', borderRadius: element.rounded ? '50%' : 4 }}
                 onMouseDown={handleWrapperMouseDown}
+                onTouchStart={handleWrapperMouseDown}
                 onDoubleClick={() => fileRef.current?.click()}
             >
                 {element.src ? (
@@ -100,12 +102,12 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                     }}
                 />
                 {isSelected && (
-                    <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
+                    <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)} onTouchStart={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
                         <i className="fa-solid fa-up-down-left-right" style={{ marginRight: 4 }} />Move
                     </div>
                 )}
                 {isSelected && HANDLES.map(h => (
-                    <div key={h} className={`resize-handle ${h}`} onMouseDown={e => onResizeHandleMouseDown(e, h)} />
+                    <div key={h} className={`resize-handle ${h}`} onMouseDown={e => onResizeHandleMouseDown(e, h)} onTouchStart={e => onResizeHandleMouseDown(e, h)} />
                 ))}
             </div>
         );
@@ -143,11 +145,12 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
             className={`canvas-element${isSelected ? ' selected' : ''}`}
             style={style}
             onMouseDown={handleWrapperMouseDown}
+            onTouchStart={handleWrapperMouseDown}
             onDoubleClick={handleDoubleClick}
         >
             {/* Drag Handle */}
             {isSelected && (
-                <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
+                <div className="drag-handle" onMouseDown={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)} onTouchStart={e => onDragHandleMouseDown(e, canvasRef.current, pageOffset)}>
                     <i className="fa-solid fa-up-down-left-right" style={{ marginRight: 4 }} />
                     Move
                 </div>
@@ -162,6 +165,7 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                 style={contentStyle}
                 onBlur={handleBlur}
                 onMouseDown={e => { if (isSelected) e.stopPropagation(); }}
+                onTouchStart={e => { if (isSelected) e.stopPropagation(); }}
             >
                 {element.text}
             </div>
@@ -172,6 +176,7 @@ export default function CanvasElement({ element, canvasRef, pageOffset = { x: 0,
                     key={h}
                     className={`resize-handle ${h}`}
                     onMouseDown={e => onResizeHandleMouseDown(e, h)}
+                    onTouchStart={e => onResizeHandleMouseDown(e, h)}
                 />
             ))}
         </div>

@@ -17,23 +17,30 @@ export function useResize(elementId) {
     const startRef = useRef(null);
 
     const onResizeHandleMouseDown = useCallback((e, handle) => {
-        e.preventDefault();
+        if (e.type !== 'touchstart') e.preventDefault();
         e.stopPropagation();
 
         const el = state.elements.find(el => el.id === elementId);
         if (!el) return;
 
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
         startRef.current = {
-            mouseX: e.clientX, mouseY: e.clientY,
+            mouseX: clientX, mouseY: clientY,
             x: el.x, y: el.y, w: el.width, h: el.height || 40,
             handle,
             zoom: state.zoom,
         };
 
         function onMouseMove(e2) {
+            if (e2.type === 'touchmove') e2.preventDefault();
+            const cx = e2.touches ? e2.touches[0].clientX : e2.clientX;
+            const cy = e2.touches ? e2.touches[0].clientY : e2.clientY;
+
             const s = startRef.current;
-            const dx = (e2.clientX - s.mouseX) / s.zoom;
-            const dy = (e2.clientY - s.mouseY) / s.zoom;
+            const dx = (cx - s.mouseX) / s.zoom;
+            const dy = (cy - s.mouseY) / s.zoom;
 
             let { x, y, w, h } = s;
 
@@ -56,10 +63,14 @@ export function useResize(elementId) {
             if (el2) commitElement(elementId, { x: el2.x, y: el2.y, width: el2.width, height: el2.height });
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener('touchmove', onMouseMove);
+            window.removeEventListener('touchend', onMouseUp);
         }
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('touchmove', onMouseMove, { passive: false });
+        window.addEventListener('touchend', onMouseUp);
     }, [elementId, state.elements, state.zoom, updateElement, commitElement]);
 
     return { onResizeHandleMouseDown, HANDLES };

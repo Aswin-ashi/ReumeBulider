@@ -17,7 +17,7 @@ export function useDrag(elementId) {
     const pageOffsetRef = useRef({ x: 0, y: 0 });
 
     const onDragHandleMouseDown = useCallback((e, canvasEl, pageOffset = { x: 0, y: 0 }) => {
-        e.preventDefault();
+        if (e.type !== 'touchstart') e.preventDefault();
         e.stopPropagation();
         select(elementId);
         dragging.current = true;
@@ -27,19 +27,27 @@ export function useDrag(elementId) {
         const el = state.elements.find(el => el.id === elementId);
         if (!el) return;
 
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
         const rect = canvasEl.getBoundingClientRect();
         // mouseX/Y are in canvas-absolute space
-        const mouseX = (e.clientX - rect.left) / state.zoom;
-        const mouseY = (e.clientY - rect.top) / state.zoom;
+        const mouseX = (clientX - rect.left) / state.zoom;
+        const mouseY = (clientY - rect.top) / state.zoom;
         // el.x/y are page-relative; add page offset to compare with canvas coords
         offset.current = { x: mouseX - (el.x + pageOffset.x), y: mouseY - (el.y + pageOffset.y) };
 
         function onMouseMove(e2) {
             if (!dragging.current) return;
+            if (e2.type === 'touchmove') e2.preventDefault(); // prevent scrolling
+            
+            const cx = e2.touches ? e2.touches[0].clientX : e2.clientX;
+            const cy = e2.touches ? e2.touches[0].clientY : e2.clientY;
+
             const rect2 = canvasRef.current.getBoundingClientRect();
             const po = pageOffsetRef.current;
-            const mx = (e2.clientX - rect2.left) / state.zoom;
-            const my = (e2.clientY - rect2.top) / state.zoom;
+            const mx = (cx - rect2.left) / state.zoom;
+            const my = (cy - rect2.top) / state.zoom;
 
             // Subtract page offset to get page-relative coords
             const newX = clamp(mx - offset.current.x - po.x, -50, A4_WIDTH - 20);
@@ -56,10 +64,14 @@ export function useDrag(elementId) {
             }
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+            window.removeEventListener('touchmove', onMouseMove);
+            window.removeEventListener('touchend', onMouseUp);
         }
 
         window.addEventListener('mousemove', onMouseMove);
         window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('touchmove', onMouseMove, { passive: false });
+        window.addEventListener('touchend', onMouseUp);
     }, [elementId, state.elements, state.zoom, updateElement, commitElement, select]);
 
     return { onDragHandleMouseDown };

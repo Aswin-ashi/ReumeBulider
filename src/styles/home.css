@@ -135,7 +135,7 @@
 }
 
 .ls-by span {
-    color: var(--bg-surface);
+    color: var(--text-primary);
     font-weight: 600;
 }
 
