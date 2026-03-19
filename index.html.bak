@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canva-Style Resume Builder</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    <style>
+        :root {
+            --a4-width: 794px;
+            --a4-height: 1123px;
+            --primary-color: #6f42c1;
+            /* Purple */
+            --dark-sidebar: #1a1c23;
+        }
+
+        body,
+        html {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f3f4f6;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* General UI Classes */
+        .cursor-pointer {
+            cursor: pointer;
+        }
+
+        .text-purple {
+            color: var(--primary-color);
+        }
+
+        .bg-purple {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .hover-bg-light:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Canvas Area Styles */
+        #canvas-wrapper {
+            background-color: #f3f4f6;
+            overflow: auto;
+            position: relative;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+
+        #print-area {
+            background-color: white;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: relative;
+            transform-origin: top center;
+            transition: transform 0.1s;
+            width: var(--a4-width);
+            height: var(--a4-height);
+        }
+
+        .canvas-element {
+            position: absolute;
+            outline: 1px solid transparent;
+            min-width: 50px;
+            min-height: 20px;
+        }
+
+        .canvas-element:hover {
+            outline: 1px dashed #b39ddb;
+        }
+
+        .canvas-element.selected {
+            outline: 2px solid var(--primary-color);
+            z-index: 10;
+        }
+
+        .element-content {
+            width: 100%;
+            height: 100%;
+            outline: none;
+            cursor: text;
+        }
+
+        .drag-handle {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 6px;
+            cursor: grab;
+            display: none;
+            color: #666;
+            font-size: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .canvas-element.selected .drag-handle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Print Styles */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            #print-area,
+            #print-area * {
+                visibility: visible;
+            }
+
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: var(--a4-width) !important;
+                height: var(--a4-height) !important;
+                transform: scale(1) !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+            }
+
+            .canvas-element {
+                outline: none !important;
+                border: none !important;
+            }
+
+            .drag-handle {
+                display: none !important;
+            }
+
+            @page {
+                size: A4 portrait;
+                margin: 0;
+            }
+        }
+
+        /* Toolbar styles */
+        .toolbar-btn {
+            background: transparent;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: #495057;
+        }
+
+        .toolbar-btn:hover {
+            background: #e9ecef;
+        }
+
+        .toolbar-btn.active {
+            background: #dee2e6;
+            font-weight: bold;
+        }
+
+        .toolbar-divider {
+            width: 1px;
+            height: 24px;
+            background: #dee2e6;
+            margin: 0 8px;
+        }
+
+        /* Sidebar Tabs */
+        .sidebar-tab {
+            color: #adb5bd;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            font-size: 11px;
+            border: none;
+            background: transparent;
+            width: 100%;
+        }
+
+        .sidebar-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-tab.active {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Template Preview Card */
+        .template-card {
+            width: 200px;
+            height: 282px;
+            border: 1px solid #dee2e6;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            transition: box-shadow 0.2s;
+            overflow: hidden;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .template-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- AUTH LOADING SCREEN -->
+    <div id="loading-screen"
+        class="d-flex w-100 h-100 justify-content-center align-items-center bg-light position-absolute top-0 start-0 z-3">
+        <div class="spinner-border text-purple" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- HOME VIEW -->
+    <div id="home-view" class="d-flex flex-column h-100 d-none">
+        <!-- Home Header -->
+        <header class="d-flex justify-content-between align-items-center px-4 py-2 bg-white border-bottom shadow-sm">
+            <div class="d-flex align-items-center gap-2">
+                <div class="bg-purple p-2 rounded text-white"><i class="fa-solid fa-file-lines"></i></div>
+                <span class="fw-bold fs-5">CanvaResume</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span id="user-id-display" class="text-muted small"></span>
+                <button class="btn btn-primary bg-purple border-0">Upgrade</button>
+            </div>
+        </header>
+
+        <div class="d-flex flex-grow-1 overflow-hidden">
+            <!-- Home Left Sidebar -->
+            <nav class="bg-white border-end p-3 d-flex flex-column gap-2" style="width: 250px;">
+                <button class="btn text-start text-purple fw-bold bg-light"><i class="fa-solid fa-home me-2"></i>
+                    Home</button>
+                <button class="btn text-start text-secondary hover-bg-light"><i
+                        class="fa-solid fa-layer-group me-2"></i> Templates</button>
+                <button class="btn text-start text-secondary hover-bg-light"><i class="fa-solid fa-briefcase me-2"></i>
+                    Projects</button>
+                <div class="mt-auto">
+                    <button class="btn text-start text-secondary hover-bg-light w-100"><i
+                            class="fa-solid fa-trash me-2"></i> Trash</button>
+                </div>
+            </nav>
+
+            <!-- Home Main Content -->
+            <main class="flex-grow-1 overflow-auto p-4 p-md-5">
+                <div class="container-fluid max-w-6xl">
+                    <h4 class="fw-bold mb-4">Start from a template</h4>
+                    <div class="d-flex gap-4 overflow-auto pb-3 mb-5" id="template-list-container">
+                        <!-- Templates injected via JS -->
+                    </div>
+
+                    <h4 class="fw-bold mb-4">Recent designs</h4>
+                    <div id="recent-designs-container" class="row g-4">
+                        <!-- Resumes injected via JS -->
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- EDITOR VIEW -->
+    <div id="editor-view" class="d-flex flex-column h-100 d-none">
+
+        <!-- Editor Header -->
+        <header class="d-flex justify-content-between align-items-center px-3 py-2 text-white"
+            style="background: linear-gradient(to right, #6f42c1, #4c1d95);">
+            <div class="d-flex align-items-center gap-3">
+                <button id="btn-back-home" class="btn btn-link text-white text-decoration-none p-1"><i
+                        class="fa-solid fa-home"></i></button>
+                <div class="border-start border-light opacity-50 h-50 mx-2"></div>
+                <input type="text" id="resume-title-input"
+                    class="form-control form-control-sm bg-transparent text-white border-0 fw-bold shadow-none"
+                    value="Untitled Design" style="max-width: 200px;">
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button id="btn-save" class="btn btn-sm btn-outline-light d-flex align-items-center gap-2"><i
+                        class="fa-solid fa-save"></i> Save</button>
+                <button id="btn-download"
+                    class="btn btn-sm bg-white text-purple fw-bold d-flex align-items-center gap-2"><i
+                        class="fa-solid fa-download"></i> Download</button>
+            </div>
+        </header>
+
+        <!-- Formatting Toolbar -->
+        <div id="formatting-toolbar" class="d-flex align-items-center px-3 py-2 bg-white border-bottom shadow-sm"
+            style="opacity: 0.5; pointer-events: none; height: 48px;">
+            <select id="tool-font-family" class="form-select form-select-sm w-auto d-inline-block">
+                <option value="Arial" style="font-family: Arial;">Arial</option>
+                <option value="Times New Roman" style="font-family: 'Times New Roman';">Times New Roman</option>
+                <option value="Courier New" style="font-family: 'Courier New';">Courier New</option>
+                <option value="Georgia" style="font-family: Georgia;">Georgia</option>
+                <option value="Verdana" style="font-family: Verdana;">Verdana</option>
+                <option value="Helvetica" style="font-family: Helvetica;">Helvetica</option>
+            </select>
+
+            <div class="toolbar-divider"></div>
+
+            <div class="input-group input-group-sm w-auto">
+                <button class="btn btn-outline-secondary" id="tool-font-minus">-</button>
+                <input type="number" id="tool-font-size" class="form-control text-center" style="max-width: 60px;"
+                    value="12">
+                <button class="btn btn-outline-secondary" id="tool-font-plus">+</button>
+            </div>
+
+            <div class="toolbar-divider"></div>
+
+            <input type="color" id="tool-color" class="form-control form-control-color form-control-sm p-0 border-0"
+                value="#000000" title="Text Color" style="width: 30px; height: 30px; cursor: pointer;">
+
+            <div class="toolbar-divider"></div>
+
+            <button class="toolbar-btn" id="tool-bold"><i class="fa-solid fa-bold"></i></button>
+            <button class="toolbar-btn" id="tool-italic"><i class="fa-solid fa-italic"></i></button>
+            <button class="toolbar-btn" id="tool-underline"><i class="fa-solid fa-underline"></i></button>
+
+            <div class="toolbar-divider"></div>
+
+            <button class="toolbar-btn" id="tool-align-left"><i class="fa-solid fa-align-left"></i></button>
+            <button class="toolbar-btn" id="tool-align-center"><i class="fa-solid fa-align-center"></i></button>
+            <button class="toolbar-btn" id="tool-align-right"><i class="fa-solid fa-align-right"></i></button>
+
+            <div class="ms-auto">
+                <button id="tool-delete" class="btn btn-sm text-danger hover-bg-light"><i
+                        class="fa-solid fa-trash"></i></button>
+            </div>
+        </div>
+
+        <div class="d-flex flex-grow-1 overflow-hidden">
+
+            <!-- Primary Sidebar (Dark) -->
+            <aside class="d-flex flex-column align-items-center py-3 z-2"
+                style="width: 72px; background-color: var(--dark-sidebar);">
+                <button class="sidebar-tab active" data-target="tab-templates">
+                    <i class="fa-solid fa-layer-group fs-5 mb-1"></i> Design
+                </button>
+                <button class="sidebar-tab" data-target="tab-text">
+                    <i class="fa-solid fa-t fs-5 mb-1"></i> Text
+                </button>
+            </aside>
+
+            <!-- Secondary Context Sidebar -->
+            <aside class="bg-white border-end d-flex flex-column z-1 shadow-sm" style="width: 320px;">
+
+                <!-- Templates Tab -->
+                <div id="tab-templates" class="p-4 h-100 overflow-auto context-pane">
+                    <h5 class="fw-bold mb-2">ATS Templates</h5>
+                    <p class="text-muted small mb-4">Clicking a template replaces current content.</p>
+                    <div class="d-flex flex-column gap-3" id="sidebar-templates-list">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+                <!-- Text Tab -->
+                <div id="tab-text" class="p-4 h-100 overflow-auto context-pane d-none">
+                    <h5 class="fw-bold mb-4">Add Text</h5>
+                    <div class="d-grid gap-2">
+                        <button id="add-heading" class="btn btn-light text-start py-3 fs-4 fw-bold">Add a
+                            heading</button>
+                        <button id="add-subheading" class="btn btn-light text-start py-3 fs-5 fw-bold">Add a
+                            subheading</button>
+                        <button id="add-body" class="btn btn-light text-start py-2 fs-6">Add a little bit of body
+                            text</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Main Canvas Area -->
+            <main id="canvas-wrapper" class="flex-grow-1">
+                <div id="print-area">
+                    <!-- Elements added here via JS -->
+                </div>
+
+                <!-- Zoom Controls -->
+                <div
+                    class="position-fixed bottom-0 end-0 m-4 bg-white rounded-pill shadow border px-3 py-2 d-flex align-items-center gap-3 z-3">
+                    <button id="btn-zoom-out" class="btn btn-sm btn-link text-dark text-decoration-none fw-bold p-0"><i
+                            class="fa-solid fa-minus"></i></button>
+                    <span id="zoom-level" class="small fw-bold" style="min-width: 40px; text-align: center;">100%</span>
+                    <button id="btn-zoom-in" class="btn btn-sm btn-link text-dark text-decoration-none fw-bold p-0"><i
+                            class="fa-solid fa-plus"></i></button>
+                </div>
+            </main>
+
+        </div>
+    </div>
+
+    <!-- Firebase SDKs (Web Modular API) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, doc, setDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // 1. CONFIGURATION & DATA
+        // ==========================================
+        const A4_WIDTH = 794;
+        const A4_HEIGHT = 1123;
+
+        const DEFAULT_TEXT = {
+            type: 'text', text: 'Click to edit', x: 100, y: 100, width: 200,
+            fontSize: 16, fontFamily: 'Arial', fontWeight: 'normal',
+            fontStyle: 'normal', textDecoration: 'none', textAlign: 'left', color: '#000000'
+        };
+
+        const ATS_TEMPLATES = [
+            { id: 'blank', name: 'Create blank', elements: [] },
+            {
+                id: 'ats-classic',
+                name: 'ATS Classic',
+                elements: [
+                    { ...DEFAULT_TEXT, id: 't1', text: 'JOHN DOE', x: A4_WIDTH / 2 - 150, y: 50, width: 300, fontSize: 32, fontWeight: 'bold', textAlign: 'center', fontFamily: 'Times New Roman' },
+                    { ...DEFAULT_TEXT, id: 't2', text: 'john.doe@email.com | (555) 123-4567 | New York, NY', x: 50, y: 100, width: A4_WIDTH - 100, fontSize: 11, textAlign: 'center', fontFamily: 'Times New Roman' },
+                    { ...DEFAULT_TEXT, id: 't3', text: 'PROFESSIONAL SUMMARY', x: 50, y: 140, width: A4_WIDTH - 100, fontSize: 14, fontWeight: 'bold', fontFamily: 'Times New Roman', textDecoration: 'underline' },
+                    { ...DEFAULT_TEXT, id: 't4', text: 'Results-driven professional with 5+ years of experience in project management.', x: 50, y: 165, width: A4_WIDTH - 100, fontSize: 11, fontFamily: 'Times New Roman' },
+                    { ...DEFAULT_TEXT, id: 't5', text: 'EXPERIENCE', x: 50, y: 220, width: A4_WIDTH - 100, fontSize: 14, fontWeight: 'bold', fontFamily: 'Times New Roman', textDecoration: 'underline' },
+                    { ...DEFAULT_TEXT, id: 't6', text: 'Senior Project Manager', x: 50, y: 245, width: 300, fontSize: 12, fontWeight: 'bold', fontFamily: 'Times New Roman' },
+                    { ...DEFAULT_TEXT, id: 't8', text: 'Jan 2020 - Present', x: A4_WIDTH - 250, y: 245, width: 200, fontSize: 11, textAlign: 'right', fontFamily: 'Times New Roman' },
+                    { ...DEFAULT_TEXT, id: 't9', text: '• Led cross-functional team of 15 members.\n• Improved agile sprint velocity by 20%.', x: 70, y: 265, width: A4_WIDTH - 120, fontSize: 11, fontFamily: 'Times New Roman' },
+                ]
+            },
+            {
+                id: 'ats-modern',
+                name: 'Modern Clean',
+                elements: [
+                    { ...DEFAULT_TEXT, id: 'm1', text: 'JANE SMITH', x: 50, y: 50, width: 400, fontSize: 36, fontWeight: 'bold', fontFamily: 'Arial', color: '#2c3e50' },
+                    { ...DEFAULT_TEXT, id: 'm2', text: 'Software Engineer', x: 50, y: 95, width: 400, fontSize: 18, fontFamily: 'Arial', color: '#7f8c8d' },
+                    { ...DEFAULT_TEXT, id: 'm4', text: 'SUMMARY', x: 50, y: 150, width: A4_WIDTH - 100, fontSize: 12, fontWeight: 'bold', fontFamily: 'Arial', color: '#2980b9' },
+                    { ...DEFAULT_TEXT, id: 'm5', text: 'Full-stack developer with 3 years of experience building scalable web applications.', x: 50, y: 170, width: A4_WIDTH - 100, fontSize: 11, fontFamily: 'Arial', color: '#333333' },
+                ]
+            }
+        ];
+
+        // ==========================================
+        // 2. STATE MANAGEMENT
+        // ==========================================
+        let state = {
+            user: null,
+            view: 'home', // 'home' or 'editor'
+            resumes: [],
+            currentResume: null,
+            elements: [],
+            selectedElementId: null,
+            zoom: 1.0,
+            isDragging: false,
+            dragOffset: { x: 0, y: 0 }
+        };
+
+        // DOM Elements
+        const views = {
+            loading: document.getElementById('loading-screen'),
+            home: document.getElementById('home-view'),
+            editor: document.getElementById('editor-view')
+        };
+        const canvas = document.getElementById('print-area');
+        const canvasWrapper = document.getElementById('canvas-wrapper');
+        const toolbar = document.getElementById('formatting-toolbar');
+
+        // ==========================================
+        // 3. FIREBASE SETUP  (graceful offline fallback)
+        // ==========================================
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const isFirebaseConfigured = !!(firebaseConfig && firebaseConfig.apiKey);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-resume-app';
+
+        // --- LOCAL-STORAGE helpers used when Firebase is not configured ---
+        const LOCAL_KEY = 'canvaresume_local';
+        function localLoad() {
+            try { return JSON.parse(localStorage.getItem(LOCAL_KEY)) || []; }
+            catch { return []; }
+        }
+        function localSave(resumes) {
+            localStorage.setItem(LOCAL_KEY, JSON.stringify(resumes));
+        }
+
+        let db = null; // assigned only in online mode
+
+        if (isFirebaseConfigured) {
+            // ---- ONLINE MODE ----
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            db = getFirestore(app);
+
+            async function initAuth() {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                } catch (error) {
+                    console.error("Auth error:", error);
+                    // Still hide loader if auth fails
+                    views.loading.classList.add('d-none');
+                    updateView();
+                }
+            }
+
+            onAuthStateChanged(auth, (user) => {
+                state.user = user;
+                if (user) {
+                    document.getElementById('user-id-display').innerText = `UID: ${user.uid.slice(0, 8)}...`;
+                    loadResumes();
+                }
+                views.loading.classList.add('d-none');
+                updateView();
+            });
+
+            initAuth();
+
+            // Safety net: hide loader after 8 s no matter what
+            setTimeout(() => views.loading.classList.add('d-none'), 8000);
+
+        } else {
+            // ---- OFFLINE / LOCAL MODE ----
+            console.info('No Firebase config detected — running in local (offline) mode.');
+            document.getElementById('user-id-display').innerText = 'Local mode';
+            document.getElementById('btn-save').title = 'Saved locally (no cloud)';
+
+            state.resumes = localLoad();
+            views.loading.classList.add('d-none');
+            updateView();
+        }
+
+        // ==========================================
+        // 4. DATA OPERATIONS
+        // ==========================================
+        async function loadResumes() {
+            if (!isFirebaseConfigured) {
+                state.resumes = localLoad();
+                state.resumes.sort((a, b) => b.updatedAt - a.updatedAt);
+                renderHome();
+                return;
+            }
+            if (!state.user) return;
+            try {
+                const resumesRef = collection(db, 'artifacts', appId, 'users', state.user.uid, 'resumes');
+                const snapshot = await getDocs(resumesRef);
+                state.resumes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                state.resumes.sort((a, b) => b.updatedAt - a.updatedAt);
+                renderHome();
+            } catch (error) {
+                console.error("Error fetching resumes:", error);
+            }
+        }
+
+        async function saveResume() {
+            if (!state.currentResume) return;
+            const title = document.getElementById('resume-title-input').value;
+            const resumeData = {
+                ...state.currentResume,
+                title: title,
+                elements: state.elements,
+                updatedAt: Date.now()
+            };
+
+            if (!isFirebaseConfigured) {
+                // Local mode: persist to localStorage
+                const idx = state.resumes.findIndex(r => r.id === resumeData.id);
+                if (idx !== -1) state.resumes[idx] = resumeData;
+                else state.resumes.push(resumeData);
+                localSave(state.resumes);
+                state.currentResume = resumeData;
+                alert('Saved locally!');
+                return;
+            }
+
+            if (!state.user) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'users', state.user.uid, 'resumes', state.currentResume.id);
+                await setDoc(docRef, resumeData);
+                state.currentResume = resumeData;
+                alert('Saved successfully!');
+                loadResumes();
+            } catch (error) {
+                console.error('Error saving:', error);
+                alert('Failed to save.');
+            }
+        }
+
+        async function deleteResume(id, event) {
+            event.stopPropagation();
+            if (!confirm('Delete this resume?')) return;
+
+            if (!isFirebaseConfigured) {
+                state.resumes = state.resumes.filter(r => r.id !== id);
+                localSave(state.resumes);
+                renderHome();
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, 'artifacts', appId, 'users', state.user.uid, 'resumes', id));
+                state.resumes = state.resumes.filter(r => r.id !== id);
+                renderHome();
+            } catch (error) {
+                console.error('Error deleting:', error);
+            }
+        }
+
+        // ==========================================
+        // 5. CORE LOGIC & RENDERING
+        // ==========================================
+
+        function updateView() {
+            if (state.view === 'home') {
+                views.home.classList.remove('d-none');
+                views.editor.classList.add('d-none');
+                renderHome();
+            } else {
+                views.home.classList.add('d-none');
+                views.editor.classList.remove('d-none');
+                document.getElementById('resume-title-input').value = state.currentResume.title || 'Untitled';
+                renderCanvas();
+            }
+        }
+
+        function createNew(template) {
+            state.currentResume = {
+                id: Date.now().toString(),
+                title: template.id === 'blank' ? 'Untitled Design' : `${template.name} Copy`,
+                elements: JSON.parse(JSON.stringify(template.elements)),
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+            state.elements = state.currentResume.elements;
+            state.selectedElementId = null;
+            state.view = 'editor';
+            updateView();
+        }
+
+        function openResume(resume) {
+            state.currentResume = resume;
+            state.elements = resume.elements || [];
+            state.selectedElementId = null;
+            state.view = 'editor';
+            updateView();
+        }
+
+        function addTextElement(type) {
+            let config = { ...DEFAULT_TEXT, id: 'el_' + Date.now() };
+            if (type === 'heading') config = { ...config, text: 'Add a heading', fontSize: 32, fontWeight: 'bold' };
+            else if (type === 'subheading') config = { ...config, text: 'Add a subheading', fontSize: 20, fontWeight: 'bold' };
+            else config = { ...config, text: 'Add a little bit of body text', fontSize: 12 };
+
+            state.elements.push(config);
+            state.selectedElementId = config.id;
+            renderCanvas();
+            updateToolbar();
+        }
+
+        function updateElement(id, updates) {
+            const index = state.elements.findIndex(el => el.id === id);
+            if (index !== -1) {
+                state.elements[index] = { ...state.elements[index], ...updates };
+                // Update DOM directly for smooth typing/dragging instead of full re-render
+                applyStylesToNode(document.getElementById(id), state.elements[index]);
+                if (id === state.selectedElementId) updateToolbar();
+            }
+        }
+
+        // --- Render Home Screen ---
+        function renderHome() {
+            // Render Templates
+            const templateContainer = document.getElementById('template-list-container');
+            templateContainer.innerHTML = '';
+            ATS_TEMPLATES.forEach(t => {
+                const div = document.createElement('div');
+                div.className = 'template-card';
+                div.onclick = () => createNew(t);
+
+                if (t.id === 'blank') {
+                    div.innerHTML = `<div class="d-flex flex-column align-items-center justify-content-center h-100 text-purple"><i class="fa-solid fa-plus fs-1 mb-2"></i><span class="fw-bold">Create blank</span></div>`;
+                } else {
+                    div.innerHTML = `
+                        <div class="h-100 bg-light p-3 opacity-50 text-center">
+                            <div class="bg-dark rounded mb-3 mx-auto" style="height:4px; width:50%;"></div>
+                            <div class="bg-secondary rounded mb-2 mx-auto" style="height:2px; width:80%;"></div>
+                            <div class="bg-secondary rounded mb-2 mx-auto" style="height:2px; width:100%;"></div>
+                        </div>
+                        <div class="position-absolute bottom-0 w-100 bg-white p-2 text-center border-top fw-bold small text-dark">${t.name}</div>
+                    `;
+                }
+                templateContainer.appendChild(div);
+            });
+
+            // Render Recent
+            const recentContainer = document.getElementById('recent-designs-container');
+            recentContainer.innerHTML = '';
+            if (state.resumes.length === 0) {
+                recentContainer.innerHTML = '<div class="col-12 text-center py-5 text-muted">No designs yet.</div>';
+            } else {
+                state.resumes.forEach(r => {
+                    const div = document.createElement('div');
+                    div.className = 'col-6 col-md-4 col-lg-3';
+                    const dateStr = new Date(r.updatedAt).toLocaleDateString();
+                    div.innerHTML = `
+                        <div class="card h-100 shadow-sm cursor-pointer border-0">
+                            <div class="card-img-top bg-light" style="aspect-ratio: 1/1.4; position:relative;" onclick="openObj('${r.id}')">
+                                <i class="fa-solid fa-file-lines text-purple opacity-25 fs-1 position-absolute top-50 start-50 translate-middle"></i>
+                            </div>
+                            <div class="card-body p-2 d-flex justify-content-between align-items-start border-top">
+                                <div>
+                                    <h6 class="card-title mb-0 small fw-bold text-truncate" style="max-width: 120px;">${r.title || 'Untitled'}</h6>
+                                    <small class="text-muted" style="font-size: 10px;">${dateStr}</small>
+                                </div>
+                                <button class="btn btn-sm text-danger p-0 delete-btn" data-id="${r.id}"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    recentContainer.appendChild(div);
+                });
+
+                // Add events
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.onclick = (e) => deleteResume(btn.getAttribute('data-id'), e);
+                });
+            }
+
+            // Also render sidebar templates
+            const sidebarTemplates = document.getElementById('sidebar-templates-list');
+            sidebarTemplates.innerHTML = '';
+            ATS_TEMPLATES.filter(t => t.id !== 'blank').forEach(t => {
+                const btn = document.createElement('button');
+                btn.className = 'btn btn-outline-secondary text-start fw-bold';
+                btn.innerText = t.name;
+                btn.onclick = () => {
+                    if (confirm("Replace current design?")) {
+                        state.elements = JSON.parse(JSON.stringify(t.elements));
+                        state.selectedElementId = null;
+                        renderCanvas();
+                    }
+                };
+                sidebarTemplates.appendChild(btn);
+            });
+        }
+
+        // Expose open function to global for inline onclick
+        window.openObj = (id) => {
+            const res = state.resumes.find(r => r.id === id);
+            if (res) openResume(res);
+        };
+
+        // --- Render Canvas ---
+        function renderCanvas() {
+            canvas.innerHTML = '';
+            state.elements.forEach(el => {
+                const wrapper = document.createElement('div');
+                wrapper.id = el.id;
+                wrapper.className = `canvas-element ${state.selectedElementId === el.id ? 'selected' : ''}`;
+
+                // Drag handle
+                const handle = document.createElement('div');
+                handle.className = 'drag-handle';
+                handle.innerHTML = '<i class="fa-solid fa-grip-lines"></i>';
+
+                // Content Editable area
+                const content = document.createElement('div');
+                content.className = 'element-content';
+                content.contentEditable = true;
+                content.innerHTML = el.text.replace(/\n/g, '<br>');
+
+                // Interaction Events
+                wrapper.onmousedown = (e) => handleElementMouseDown(e, el.id);
+                content.onblur = (e) => updateElement(el.id, { text: e.target.innerText });
+                // Prevent drag if clicking inside text to allow highlighting
+                content.onmousedown = (e) => {
+                    if (state.selectedElementId === el.id) e.stopPropagation();
+                };
+
+                wrapper.appendChild(handle);
+                wrapper.appendChild(content);
+                canvas.appendChild(wrapper);
+
+                applyStylesToNode(wrapper, el);
+            });
+            updateToolbar();
+        }
+
+        function applyStylesToNode(node, data) {
+            if (!node) return;
+            node.style.left = `${data.x}px`;
+            node.style.top = `${data.y}px`;
+            node.style.width = `${data.width}px`;
+
+            const content = node.querySelector('.element-content');
+            if (content) {
+                content.style.fontFamily = data.fontFamily;
+                content.style.fontSize = `${data.fontSize}px`;
+                content.style.fontWeight = data.fontWeight;
+                content.style.fontStyle = data.fontStyle;
+                content.style.textDecoration = data.textDecoration;
+                content.style.textAlign = data.textAlign;
+                content.style.color = data.color;
+                content.style.whiteSpace = 'pre-wrap';
+                content.style.wordWrap = 'break-word';
+                content.style.lineHeight = '1.4';
+            }
+        }
+
+        // --- Toolbar Logic ---
+        function updateToolbar() {
+            if (state.selectedElementId) {
+                toolbar.style.opacity = '1';
+                toolbar.style.pointerEvents = 'auto';
+
+                const el = state.elements.find(e => e.id === state.selectedElementId);
+                if (el) {
+                    document.getElementById('tool-font-family').value = el.fontFamily;
+                    document.getElementById('tool-font-size').value = el.fontSize;
+                    document.getElementById('tool-color').value = el.color || '#000000';
+
+                    document.getElementById('tool-bold').classList.toggle('active', el.fontWeight === 'bold');
+                    document.getElementById('tool-italic').classList.toggle('active', el.fontStyle === 'italic');
+                    document.getElementById('tool-underline').classList.toggle('active', el.textDecoration === 'underline');
+
+                    document.getElementById('tool-align-left').classList.toggle('active', el.textAlign === 'left');
+                    document.getElementById('tool-align-center').classList.toggle('active', el.textAlign === 'center');
+                    document.getElementById('tool-align-right').classList.toggle('active', el.textAlign === 'right');
+                }
+            } else {
+                toolbar.style.opacity = '0.5';
+                toolbar.style.pointerEvents = 'none';
+            }
+        }
+
+        // --- Drag Logic ---
+        function handleElementMouseDown(e, id) {
+            e.stopPropagation();
+
+            if (state.selectedElementId !== id) {
+                state.selectedElementId = id;
+                renderCanvas(); // Re-render to show selection box
+            }
+
+            const el = state.elements.find(e => e.id === id);
+            if (!el) return;
+
+            state.isDragging = true;
+
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) / state.zoom;
+            const mouseY = (e.clientY - rect.top) / state.zoom;
+
+            state.dragOffset = {
+                x: mouseX - el.x,
+                y: mouseY - el.y
+            };
+        }
+
+        // --- Drag Move/Release Handlers ---
+        document.addEventListener('mousemove', (e) => {
+            if (!state.isDragging || !state.selectedElementId) return;
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = (e.clientX - rect.left) / state.zoom;
+            const mouseY = (e.clientY - rect.top) / state.zoom;
+            const newX = Math.max(0, mouseX - state.dragOffset.x);
+            const newY = Math.max(0, mouseY - state.dragOffset.y);
+            updateElement(state.selectedElementId, { x: newX, y: newY });
+        });
+
+        document.addEventListener('mouseup', () => {
+            state.isDragging = false;
+        });
+
+        // Deselect when clicking empty canvas area
+        canvasWrapper.addEventListener('mousedown', (e) => {
+            if (e.target === canvasWrapper || e.target === canvas) {
+                state.selectedElementId = null;
+                renderCanvas();
+            }
+        });
+
+        // Upgrade button dummy handler
+        document.querySelector('#home-view .btn-primary')?.addEventListener('click', () => {
+            if (!state.user) {
+                alert('Online features such as upgrading or saving require a network connection.');
+            }
+        });
+
+        document.getElementById('btn-download').onclick = () => {
+            state.selectedElementId = null;
+
+            // Fix: Reset zoom to 100% before generating the PDF so it doesn't print tiny/huge
+            const prevZoom = state.zoom;
+            updateZoom(1);
+            renderCanvas();
+
+            // try using html2pdf if available, otherwise fallback to print dialog
+            const elem = canvas;
+            if (typeof html2pdf === 'function') {
+                const opt = {
+                    margin: 10,
+                    filename: (document.getElementById('resume-title-input').value || 'resume') + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(elem).save().then(() => {
+                    updateZoom(prevZoom); // Restore user's zoom level
+                }).catch(err => {
+                    console.warn('html2pdf failed, falling back to print', err);
+                    updateZoom(prevZoom);
+                    setTimeout(() => window.print(), 100);
+                });
+            } else {
+                setTimeout(() => {
+                    window.print();
+                    updateZoom(prevZoom);
+                }, 100);
+            }
+        };
+
+        // Tabs
+        document.querySelectorAll('.sidebar-tab').forEach(tab => {
+            tab.onclick = () => {
+                document.querySelectorAll('.sidebar-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.context-pane').forEach(p => p.classList.add('d-none'));
+                document.getElementById(tab.getAttribute('data-target')).classList.remove('d-none');
+            };
+        });
+
+        // Adding text
+        document.getElementById('add-heading').onclick = () => addTextElement('heading');
+        document.getElementById('add-subheading').onclick = () => addTextElement('subheading');
+        document.getElementById('add-body').onclick = () => addTextElement('body');
+
+        // Zoom
+        function updateZoom(newZoom) {
+            state.zoom = Math.max(0.5, Math.min(2.0, newZoom));
+            document.getElementById('zoom-level').innerText = `${Math.round(state.zoom * 100)}%`;
+            canvas.style.transform = `scale(${state.zoom})`;
+            canvasWrapper.style.marginBottom = `${A4_HEIGHT * (state.zoom > 1 ? state.zoom - 1 : 0)}px`;
+        }
+        document.getElementById('btn-zoom-in').onclick = () => updateZoom(state.zoom + 0.1);
+        document.getElementById('btn-zoom-out').onclick = () => updateZoom(state.zoom - 0.1);
+
+        // Toolbar Actions
+        const getSel = () => state.elements.find(e => e.id === state.selectedElementId);
+
+        document.getElementById('tool-font-family').onchange = (e) => updateElement(state.selectedElementId, { fontFamily: e.target.value });
+        document.getElementById('tool-font-size').onchange = (e) => updateElement(state.selectedElementId, { fontSize: parseInt(e.target.value) || 12 });
+        document.getElementById('tool-font-plus').onclick = () => { const el = getSel(); if (el) { const newSize = el.fontSize + 1; updateElement(el.id, { fontSize: newSize }); document.getElementById('tool-font-size').value = newSize; } };
+        document.getElementById('tool-font-minus').onclick = () => { const el = getSel(); if (el) { const newSize = Math.max(8, el.fontSize - 1); updateElement(el.id, { fontSize: newSize }); document.getElementById('tool-font-size').value = newSize; } };
+
+        document.getElementById('tool-color').onchange = (e) => updateElement(state.selectedElementId, { color: e.target.value });
+
+        document.getElementById('tool-bold').onclick = () => { const el = getSel(); if (el) updateElement(el.id, { fontWeight: el.fontWeight === 'bold' ? 'normal' : 'bold' }); };
+        document.getElementById('tool-italic').onclick = () => { const el = getSel(); if (el) updateElement(el.id, { fontStyle: el.fontStyle === 'italic' ? 'normal' : 'italic' }); };
+        document.getElementById('tool-underline').onclick = () => { const el = getSel(); if (el) updateElement(el.id, { textDecoration: el.textDecoration === 'underline' ? 'none' : 'underline' }); };
+
+        document.getElementById('tool-align-left').onclick = () => { if (getSel()) updateElement(state.selectedElementId, { textAlign: 'left' }); };
+        document.getElementById('tool-align-center').onclick = () => { if (getSel()) updateElement(state.selectedElementId, { textAlign: 'center' }); };
+        document.getElementById('tool-align-right').onclick = () => { if (getSel()) updateElement(state.selectedElementId, { textAlign: 'right' }); };
+
+        document.getElementById('tool-delete').onclick = () => {
+            if (state.selectedElementId) {
+                state.elements = state.elements.filter(e => e.id !== state.selectedElementId);
+                state.selectedElementId = null;
+                renderCanvas();
+            }
+        };
+
+        // Keyboard delete
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Delete' && state.selectedElementId && state.view === 'editor') {
+                // Ensure we aren't typing inside the contenteditable
+                if (document.activeElement.tagName !== 'DIV' || !document.activeElement.classList.contains('element-content')) {
+                    document.getElementById('tool-delete').click();
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

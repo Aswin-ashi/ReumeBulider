@@ -1,0 +1,394 @@
+/* Copyright 2026 ResumeBuilder | Apache License 2.0 */
+
+/* ═══════════════════════════════════════════════════
+   TABLET  (≤ 1024px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 1024px) {
+    .context-panel {
+        width: 260px;
+    }
+
+    .home-sidebar {
+        width: 200px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   MOBILE  (≤ 768px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+
+    html,
+    body,
+    #root {
+        overflow-x: hidden;
+    }
+
+    /* ── Home Page ──────────────────────────────── */
+    .home-header {
+        padding: 12px 16px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .home-body {
+        flex-direction: column;
+    }
+
+    .home-sidebar {
+        width: 100%;
+        flex-direction: row;
+        flex-wrap: wrap;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+        padding: 8px 12px;
+        gap: 4px;
+    }
+
+    .home-nav-item {
+        width: auto;
+    }
+
+    .home-main {
+        padding: 16px;
+    }
+
+    .template-gallery {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+
+
+    .template-card-wrapper {
+        width: 100%;
+    }
+
+
+    .template-card {
+        height: 185px;
+    }
+
+    .tmpl-label {
+        font-size: 9px;
+    }
+
+    .recent-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+    }
+
+    .recent-card-title {
+        max-width: 90px;
+    }
+
+    /* ── Editor Layout ──────────────────────────── */
+    /* Stack everything vertically on mobile */
+    .editor-body {
+        flex-direction: column;
+    }
+
+    /* ── Editor Header — single compact row ────────── */
+    .editor-header {
+        flex-wrap: nowrap !important;
+        padding: 6px 8px;
+        gap: 4px;
+        align-items: center;
+        overflow: hidden;
+    }
+
+    /* Left section: back + logo + title, share available space */
+    .editor-header-left {
+        width: auto;
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-bottom: 0;
+        gap: 4px;
+        flex-wrap: nowrap;
+    }
+
+    /* Hide logo text on mobile, keep only the icon */
+    .editor-header-left>div span {
+        display: none;
+    }
+
+    /* Prevent logo icon container from shrinking */
+    .editor-header-left>div {
+        flex-shrink: 0;
+    }
+
+    /* Title input — constrained width, truncates if too long */
+    .editor-title-input {
+        flex: 1 1 auto;
+        min-width: 40px;
+        max-width: 130px;
+        font-size: 11px;
+        padding: 4px 6px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    /* Hide the inline vertical divider between left/right sections */
+    .editor-header-left>span,
+    .editor-header-right>span {
+        display: none !important;
+    }
+
+    /* Keep Undo/Redo visible but reduce inner button spacing */
+    .undo-redo-group {
+        display: flex;
+        flex-shrink: 0 !important;
+        /* STOP overlapping the title */
+        gap: 2px;
+        margin-left: 2px;
+    }
+
+    .undo-redo-btn {
+        padding: 4px 6px;
+        font-size: 13px;
+        flex-shrink: 0;
+    }
+
+    /* Right section: icon-only actions */
+    .editor-header-right {
+        width: auto;
+        flex: 0 0 auto;
+        flex-shrink: 0;
+        gap: 6px;
+        /* Slightly more gap so buttons don't touch */
+        flex-wrap: nowrap;
+        align-items: center;
+    }
+
+    .editor-header-right button {
+        flex-shrink: 0 !important;
+    }
+
+    /* Preview & Save — icon only, remove outer borders */
+    .btn-preview span,
+    .btn-save span {
+        display: none;
+    }
+
+    .btn-preview,
+    .btn-save {
+        background: transparent !important;
+        border: none !important;
+        padding: 4px;
+        margin: 0;
+        box-shadow: none !important;
+    }
+
+    .btn-preview i,
+    .btn-save i {
+        margin: 0 !important;
+        font-size: 15px;
+    }
+
+    /* Theme toggle in editor header — compact icon, no pill shape */
+    .editor-header-right .theme-toggle-btn {
+        position: static !important;
+        padding: 4px;
+        border-radius: 8px;
+        border: none;
+        background: transparent;
+        gap: 0;
+        margin: 0;
+    }
+
+    /* Right section: icon-only actions */
+    .editor-header-right {
+        width: auto;
+        flex-shrink: 0;
+        gap: 4px;
+    }
+
+    /* Preview & Save — icon only */
+    .btn-preview span,
+    .btn-save span {
+        display: none;
+    }
+
+    /* Download PDF — keep text, smaller */
+    .btn-glow {
+        font-size: 11px;
+        padding: 6px 10px;
+        white-space: nowrap;
+    }
+
+    /* ── Formatting Toolbar ─────────────────────── */
+    .formatting-toolbar {
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        -webkit-overflow-scrolling: touch;
+        padding: 6px 10px;
+        justify-content: flex-start;
+        gap: 4px;
+    }
+
+    .formatting-toolbar::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tb-divider {
+        display: none;
+    }
+
+    /* ── Sidebar Rail (horizontal strip on mobile) ─ */
+    .sidebar-rail {
+        width: 100%;
+        flex-direction: row;
+        height: auto;
+        min-height: 46px;
+        justify-content: flex-start;
+        align-items: center;
+        order: 0;
+        /* natural order: above canvas */
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+        padding: 0 8px;
+        gap: 2px;
+        overflow-x: auto;
+    }
+
+    .sidebar-rail::-webkit-scrollbar {
+        display: none;
+    }
+
+    .rail-btn {
+        flex-direction: row;
+        gap: 5px;
+        width: auto;
+        flex-shrink: 0;
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+
+    .rail-btn i {
+        font-size: 14px;
+    }
+
+    /* Page controls: compact chips on the right */
+    .rail-page-controls {
+        flex-direction: row;
+        align-items: center;
+        margin-top: 0;
+        margin-left: auto;
+        padding: 0 4px 0 8px;
+        border-top: none;
+        border-left: 1px solid var(--glass-border);
+        gap: 4px;
+        width: auto;
+        flex-shrink: 0;
+    }
+
+    .rail-page-btn {
+        flex-direction: row;
+        gap: 4px;
+        width: auto;
+        padding: 6px 8px;
+        font-size: 9px;
+    }
+
+    .rail-page-btn i {
+        font-size: 11px;
+    }
+
+    /* hide text labels for page buttons on mobile */
+    .rail-page-btn span {
+        display: none;
+    }
+
+    .rail-page-count {
+        font-size: 9px;
+        white-space: nowrap;
+    }
+
+    /* Context Panel: full-width below the rail */
+    .context-panel {
+        width: 100%;
+        max-height: 200px;
+        overflow-y: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+    }
+
+    /* ── Canvas Area ────────────────────────────── */
+    .canvas-wrapper {
+        flex: 1;
+        /* allow both axes to scroll so the scaled page is reachable */
+        overflow: auto;
+        padding: 24px 0 100px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        /* reset desktop padding that assumes sidebar gutter */
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .print-area {
+        /* let JS control the transform — just fix the origin */
+        transform-origin: top center !important;
+        /* Leave horizontal space so overflow: auto can scroll if needed */
+        flex-shrink: 0;
+    }
+
+    /* Zoom control: low opacity pill at bottom centre */
+    .zoom-control {
+        position: fixed;
+        bottom: 14px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        opacity: 0.2;
+        transition: opacity 0.25s;
+    }
+
+    .zoom-control:hover,
+    .zoom-control:focus-within {
+        opacity: 0.95;
+    }
+
+    /* Hide grid toggle — saves space */
+    .grid-toggle-btn {
+        display: none;
+    }
+}
+
+/* ═══════════════════════════════════════════════════
+   SMALL MOBILE  (≤ 480px)
+═══════════════════════════════════════════════════ */
+@media (max-width: 480px) {
+    .home-logo-text {
+        font-size: 18px;
+    }
+
+    .editor-title-input {
+        max-width: 110px;
+        font-size: 12px;
+    }
+
+    .template-gallery {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .recent-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Icon-only rail buttons on tiny screens */
+    .rail-btn span {
+        display: none;
+    }
+
+    .rail-btn {
+        padding: 8px;
+    }
+
+    .rail-btn i {
+        font-size: 16px;
+    }
+}
