@@ -45,6 +45,22 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 ---
 
+## 🌍 GitHub Pages Deployment
+
+This project is configured to automatically build and deploy to GitHub Pages.
+
+1. If you fork this project, make sure the `base` path in `vite.config.js` is updated to match your repository name.
+2. Run the deploy script from your terminal:
+   ```bash
+   npm run deploy
+   ```
+   *This automatically builds the project and pushes it to the `gh-pages` branch.*
+3. Go to your GitHub Repository **Settings** > **Pages**.
+4. Set the Source to deploy from a branch, and choose the `gh-pages` branch.
+5. Save, wait a minute, and your site will be live!
+
+---
+
 ## 🗂️ Project Structure
 
 ```
